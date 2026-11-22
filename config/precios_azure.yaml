@@ -1,0 +1,55 @@
+# =============================================================================
+# precios_azure.yaml - SUPUESTOS de precio y demanda para estimar costos (Etapa 6)
+# =============================================================================
+# ESTIMACIÓN, NO FACTURA. El despliegue de la Etapa 4 se apagó, así que no hay facturas reales.
+# Precios de lista de pago por uso de Azure Container Apps (plan Consumption) y Azure Container
+# Registry, en USD. Verificados: capa gratuita y reglas de cobro activo/inactivo en
+# https://learn.microsoft.com/azure/container-apps/billing (consulta 20-nov-2026).
+# Las tarifas por segundo son los precios de lista publicados en
+# https://azure.microsoft.com/pricing/details/container-apps/ ; la región México Central puede
+# diferir unos centavos: verificar en la calculadora de Azure antes de citar cifras finales.
+
+moneda: USD
+container_apps:
+  vcpu_activo_por_s: 0.000024
+  gib_activo_por_s: 0.000003
+  vcpu_inactivo_por_s: 0.000003      # solo aplica con réplicas mínimas > 0 y réplica sin tráfico
+  gib_inactivo_por_s: 0.000003
+  por_millon_solicitudes: 0.40
+  capa_gratuita_mensual:              # por suscripción; NO se usa para la restricción de costo
+    vcpu_s: 180000
+    gib_s: 360000
+    solicitudes: 2000000
+  cooldown_s: 300                     # supuesto: periodo de enfriamiento por defecto antes de escalar a 0
+  perfiles:                           # combinaciones vCPU / GiB permitidas en Consumption (relación 1:2)
+    - {vcpu: 0.25, gib: 0.5}
+    - {vcpu: 0.5,  gib: 1.0}
+    - {vcpu: 1.0,  gib: 2.0}
+container_registry:
+  basic_por_dia: 0.167                # ≈ USD 5 al mes, mismo valor del manual de la Etapa 4
+  incluye_gb: 10
+
+dias_mes: 30
+
+# Demanda (SUPUESTOS). La carga de 288 consultas/h viene de la simulación de la Etapa 5
+# (24 consultas por ventana de 5 min). El horario de operación es el de los boxes.
+escenarios:
+  piloto:
+    descripcion: "Piloto: 1 red de boxes, carga de la Etapa 5"
+    solicitudes_por_hora: 288
+    horas_operacion_por_dia: 16       # 05:00 a 21:00
+  red_x10:
+    descripcion: "Crecimiento: 10 veces la carga del piloto (supuesto de escalamiento)"
+    solicitudes_por_hora: 2880
+    horas_operacion_por_dia: 16
+  pico_competencia:
+    descripcion: "Pico: temporada de competencia, 50 veces la carga en la hora pico (supuesto)"
+    solicitudes_por_hora: 14400
+    horas_operacion_por_dia: 16
+
+# Presupuesto de infraestructura de la Fase I (Excel de Costos, rubro "Cómputo en la nube"):
+fase_i:
+  computo_nube_anio1: 9600            # "instancias GPU para entrenamiento inicial + endpoints de inferencia"
+  almacenamiento_anio1: 1800
+  reentrenamiento_anio2: 3200
+  reentrenamiento_anio3: 3400

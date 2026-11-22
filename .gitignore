@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.ipynb_checkpoints/
+datos/
+externos/
+resultados/crudos/
+*.log
+.DS_Store

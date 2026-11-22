@@ -1,0 +1,594 @@
+{
+  "descripcion": "Auditoría de fairness del modelo de sobrecarga (conjunto de prueba por atleta)",
+  "tipo_medicion": "MEDICIÓN REAL sobre datos SINTÉTICOS (wodpredict-synth@v1.0); 56 atletas de prueba",
+  "umbral_decision": 0.17,
+  "bootstrap": "1000 remuestreos de atletas por grupo",
+  "criterio_principal": "igualdad de oportunidad (brecha de recall)",
+  "umbrales_auditoria": {
+    "brecha_recall_max": 0.1,
+    "recall_minimo_por_grupo": 0.7
+  },
+  "control_reentrenamiento_max_dif_prob": 0.0,
+  "umbrales_por_nivel_mitigacion_b": {
+    "intermedio": 0.17,
+    "novato": 0.17,
+    "élite": 0.1
+  },
+  "metodo_umbral_por_nivel": "predicciones fuera de pliegue (GroupKFold 5 por atleta) del modelo sin sexo en el conjunto de ENTRENAMIENTO; para cada nivel, el umbral más alto <= 0.17 que alcanza el recall global del v1.0.0 (0.732). El conjunto de prueba no se usa para elegirlo.",
+  "metricas_globales": {
+    "v1.0.0 (con sexo)": {
+      "recall": 0.7324,
+      "precision": 0.3778,
+      "roc_auc": 0.8593,
+      "tasa_alertas": 0.2437
+    },
+    "sin sexo": {
+      "recall": 0.7314,
+      "precision": 0.3782,
+      "roc_auc": 0.8593,
+      "tasa_alertas": 0.2431
+    },
+    "sin sexo ni idioma": {
+      "recall": 0.7281,
+      "precision": 0.3814,
+      "roc_auc": 0.8589,
+      "tasa_alertas": 0.24
+    },
+    "sin sexo + umbral por nivel": {
+      "recall": 0.7816,
+      "precision": 0.3303,
+      "roc_auc": 0.8593,
+      "tasa_alertas": 0.2974
+    }
+  },
+  "brechas_por_variante": {
+    "v1.0.0 (con sexo)": {
+      "sexo": {
+        "brecha_recall": 0.0129,
+        "brecha_fpr": 0.0358,
+        "brecha_alertas": 0.0197,
+        "razon_alertas_min_max": 0.9215,
+        "recall_minimo_grupo": 0.7248,
+        "ic95_recall_por_grupo": {
+          "F": [
+            0.6722,
+            0.8024
+          ],
+          "M": [
+            0.667,
+            0.7809
+          ]
+        },
+        "ic95_brecha_recall": [
+          0.0017,
+          0.097
+        ],
+        "ic95_brecha_fpr": [
+          0.0025,
+          0.0763
+        ],
+        "ic95_brecha_alertas": [
+          0.0009,
+          0.068
+        ],
+        "grupo_con_menor_recall": "M",
+        "veredicto": "sin hallazgo"
+      },
+      "nivel": {
+        "brecha_recall": 0.1757,
+        "brecha_fpr": 0.0881,
+        "brecha_alertas": 0.1546,
+        "razon_alertas_min_max": 0.5284,
+        "recall_minimo_grupo": 0.623,
+        "ic95_recall_por_grupo": {
+          "intermedio": [
+            0.6672,
+            0.8021
+          ],
+          "novato": [
+            0.7335,
+            0.852
+          ],
+          "élite": [
+            0.5691,
+            0.6862
+          ]
+        },
+        "ic95_brecha_recall": [
+          0.0936,
+          0.2519
+        ],
+        "ic95_brecha_fpr": [
+          0.0505,
+          0.1268
+        ],
+        "ic95_brecha_alertas": [
+          0.1079,
+          0.1955
+        ],
+        "grupo_con_menor_recall": "élite",
+        "veredicto": "HALLAZGO"
+      },
+      "idioma": {
+        "brecha_recall": 0.0032,
+        "brecha_fpr": 0.0339,
+        "brecha_alertas": 0.0308,
+        "razon_alertas_min_max": 0.8833,
+        "recall_minimo_grupo": 0.7303,
+        "ic95_recall_por_grupo": {
+          "en": [
+            0.6533,
+            0.797
+          ],
+          "es": [
+            0.6783,
+            0.7837
+          ]
+        },
+        "ic95_brecha_recall": [
+          0.0021,
+          0.1026
+        ],
+        "ic95_brecha_fpr": [
+          0.0018,
+          0.0772
+        ],
+        "ic95_brecha_alertas": [
+          0.0011,
+          0.0829
+        ],
+        "grupo_con_menor_recall": "en",
+        "veredicto": "sin hallazgo"
+      },
+      "edad": {
+        "brecha_recall": 0.0982,
+        "brecha_fpr": 0.0584,
+        "brecha_alertas": 0.0724,
+        "razon_alertas_min_max": 0.7575,
+        "recall_minimo_grupo": 0.6887,
+        "ic95_recall_por_grupo": {
+          "31 a 40": [
+            0.6147,
+            0.7637
+          ],
+          "> 40": [
+            0.6952,
+            0.8694
+          ],
+          "≤ 30": [
+            0.6971,
+            0.8099
+          ]
+        },
+        "ic95_brecha_recall": [
+          0.0303,
+          0.2114
+        ],
+        "ic95_brecha_fpr": [
+          0.0135,
+          0.1163
+        ],
+        "ic95_brecha_alertas": [
+          0.0217,
+          0.1301
+        ],
+        "grupo_con_menor_recall": "31 a 40",
+        "veredicto": "hallazgo no concluyente (muestra pequeña)"
+      }
+    },
+    "sin sexo": {
+      "sexo": {
+        "brecha_recall": 0.0093,
+        "brecha_fpr": 0.0331,
+        "brecha_alertas": 0.0169,
+        "razon_alertas_min_max": 0.9322,
+        "recall_minimo_grupo": 0.726,
+        "ic95_recall_por_grupo": {
+          "F": [
+            0.6748,
+            0.7982
+          ],
+          "M": [
+            0.6757,
+            0.779
+          ]
+        },
+        "ic95_brecha_recall": [
+          0.0015,
+          0.0981
+        ],
+        "ic95_brecha_fpr": [
+          0.0021,
+          0.0736
+        ],
+        "ic95_brecha_alertas": [
+          0.0008,
+          0.0655
+        ],
+        "grupo_con_menor_recall": "M",
+        "veredicto": "sin hallazgo"
+      },
+      "nivel": {
+        "brecha_recall": 0.1763,
+        "brecha_fpr": 0.0868,
+        "brecha_alertas": 0.1535,
+        "razon_alertas_min_max": 0.5305,
+        "recall_minimo_grupo": 0.6212,
+        "ic95_recall_por_grupo": {
+          "intermedio": [
+            0.6671,
+            0.8079
+          ],
+          "novato": [
+            0.7382,
+            0.8518
+          ],
+          "élite": [
+            0.5656,
+            0.6887
+          ]
+        },
+        "ic95_brecha_recall": [
+          0.0957,
+          0.2573
+        ],
+        "ic95_brecha_fpr": [
+          0.0488,
+          0.1332
+        ],
+        "ic95_brecha_alertas": [
+          0.1073,
+          0.1989
+        ],
+        "grupo_con_menor_recall": "élite",
+        "veredicto": "HALLAZGO"
+      },
+      "idioma": {
+        "brecha_recall": 0.0018,
+        "brecha_fpr": 0.0335,
+        "brecha_alertas": 0.0306,
+        "razon_alertas_min_max": 0.8836,
+        "recall_minimo_grupo": 0.7303,
+        "ic95_recall_por_grupo": {
+          "en": [
+            0.6542,
+            0.8013
+          ],
+          "es": [
+            0.676,
+            0.7877
+          ]
+        },
+        "ic95_brecha_recall": [
+          0.0012,
+          0.1089
+        ],
+        "ic95_brecha_fpr": [
+          0.002,
+          0.0778
+        ],
+        "ic95_brecha_alertas": [
+          0.001,
+          0.0838
+        ],
+        "grupo_con_menor_recall": "en",
+        "veredicto": "sin hallazgo"
+      },
+      "edad": {
+        "brecha_recall": 0.1018,
+        "brecha_fpr": 0.0569,
+        "brecha_alertas": 0.0717,
+        "razon_alertas_min_max": 0.7593,
+        "recall_minimo_grupo": 0.6876,
+        "ic95_recall_por_grupo": {
+          "31 a 40": [
+            0.6121,
+            0.7583
+          ],
+          "> 40": [
+            0.7008,
+            0.8771
+          ],
+          "≤ 30": [
+            0.6897,
+            0.8077
+          ]
+        },
+        "ic95_brecha_recall": [
+          0.0242,
+          0.2215
+        ],
+        "ic95_brecha_fpr": [
+          0.0129,
+          0.1106
+        ],
+        "ic95_brecha_alertas": [
+          0.0235,
+          0.1315
+        ],
+        "grupo_con_menor_recall": "31 a 40",
+        "veredicto": "hallazgo no concluyente (muestra pequeña)"
+      }
+    },
+    "sin sexo ni idioma": {
+      "sexo": {
+        "brecha_recall": 0.0075,
+        "brecha_fpr": 0.0343,
+        "brecha_alertas": 0.0177,
+        "razon_alertas_min_max": 0.9284,
+        "recall_minimo_grupo": 0.7237,
+        "ic95_recall_por_grupo": {
+          "F": [
+            0.6617,
+            0.7936
+          ],
+          "M": [
+            0.6652,
+            0.7719
+          ]
+        },
+        "ic95_brecha_recall": [
+          0.0015,
+          0.0981
+        ],
+        "ic95_brecha_fpr": [
+          0.0029,
+          0.0734
+        ],
+        "ic95_brecha_alertas": [
+          0.0014,
+          0.0662
+        ],
+        "grupo_con_menor_recall": "M",
+        "veredicto": "sin hallazgo"
+      },
+      "nivel": {
+        "brecha_recall": 0.1784,
+        "brecha_fpr": 0.0876,
+        "brecha_alertas": 0.1544,
+        "razon_alertas_min_max": 0.523,
+        "recall_minimo_grupo": 0.6159,
+        "ic95_recall_por_grupo": {
+          "intermedio": [
+            0.6655,
+            0.8037
+          ],
+          "novato": [
+            0.7354,
+            0.8467
+          ],
+          "élite": [
+            0.5569,
+            0.6841
+          ]
+        },
+        "ic95_brecha_recall": [
+          0.0953,
+          0.2589
+        ],
+        "ic95_brecha_fpr": [
+          0.0471,
+          0.1272
+        ],
+        "ic95_brecha_alertas": [
+          0.1111,
+          0.193
+        ],
+        "grupo_con_menor_recall": "élite",
+        "veredicto": "HALLAZGO"
+      },
+      "idioma": {
+        "brecha_recall": 0.014,
+        "brecha_fpr": 0.0534,
+        "brecha_alertas": 0.05,
+        "razon_alertas_min_max": 0.8169,
+        "recall_minimo_grupo": 0.7232,
+        "ic95_recall_por_grupo": {
+          "en": [
+            0.6596,
+            0.8021
+          ],
+          "es": [
+            0.6638,
+            0.7781
+          ]
+        },
+        "ic95_brecha_recall": [
+          0.0011,
+          0.108
+        ],
+        "ic95_brecha_fpr": [
+          0.0097,
+          0.0966
+        ],
+        "ic95_brecha_alertas": [
+          0.0051,
+          0.1025
+        ],
+        "grupo_con_menor_recall": "es",
+        "veredicto": "sin hallazgo"
+      },
+      "edad": {
+        "brecha_recall": 0.0976,
+        "brecha_fpr": 0.0609,
+        "brecha_alertas": 0.0745,
+        "razon_alertas_min_max": 0.7499,
+        "recall_minimo_grupo": 0.6843,
+        "ic95_recall_por_grupo": {
+          "31 a 40": [
+            0.6124,
+            0.7549
+          ],
+          "> 40": [
+            0.6913,
+            0.8768
+          ],
+          "≤ 30": [
+            0.6927,
+            0.8069
+          ]
+        },
+        "ic95_brecha_recall": [
+          0.0183,
+          0.2109
+        ],
+        "ic95_brecha_fpr": [
+          0.0136,
+          0.1219
+        ],
+        "ic95_brecha_alertas": [
+          0.0238,
+          0.1324
+        ],
+        "grupo_con_menor_recall": "31 a 40",
+        "veredicto": "hallazgo no concluyente (muestra pequeña)"
+      }
+    },
+    "sin sexo + umbral por nivel": {
+      "sexo": {
+        "brecha_recall": 0.0348,
+        "brecha_fpr": 0.0154,
+        "brecha_alertas": 0.005,
+        "razon_alertas_min_max": 0.9834,
+        "recall_minimo_grupo": 0.7611,
+        "ic95_recall_por_grupo": {
+          "F": [
+            0.7515,
+            0.838
+          ],
+          "M": [
+            0.701,
+            0.817
+          ]
+        },
+        "ic95_brecha_recall": [
+          0.0016,
+          0.1074
+        ],
+        "ic95_brecha_fpr": [
+          0.0012,
+          0.0641
+        ],
+        "ic95_brecha_alertas": [
+          0.001,
+          0.0474
+        ],
+        "grupo_con_menor_recall": "M",
+        "veredicto": "sin hallazgo"
+      },
+      "nivel": {
+        "brecha_recall": 0.0703,
+        "brecha_fpr": 0.0701,
+        "brecha_alertas": 0.0675,
+        "razon_alertas_min_max": 0.7935,
+        "recall_minimo_grupo": 0.735,
+        "ic95_recall_por_grupo": {
+          "intermedio": [
+            0.6629,
+            0.8056
+          ],
+          "novato": [
+            0.7322,
+            0.8472
+          ],
+          "élite": [
+            0.7693,
+            0.8471
+          ]
+        },
+        "ic95_brecha_recall": [
+          0.0163,
+          0.1582
+        ],
+        "ic95_brecha_fpr": [
+          0.0265,
+          0.1191
+        ],
+        "ic95_brecha_alertas": [
+          0.0296,
+          0.1146
+        ],
+        "grupo_con_menor_recall": "intermedio",
+        "veredicto": "sin hallazgo"
+      },
+      "idioma": {
+        "brecha_recall": 0.0426,
+        "brecha_fpr": 0.0032,
+        "brecha_alertas": 0.0067,
+        "razon_alertas_min_max": 0.9777,
+        "recall_minimo_grupo": 0.7538,
+        "ic95_recall_por_grupo": {
+          "en": [
+            0.6801,
+            0.8143
+          ],
+          "es": [
+            0.7547,
+            0.8336
+          ]
+        },
+        "ic95_brecha_recall": [
+          0.0025,
+          0.1266
+        ],
+        "ic95_brecha_fpr": [
+          0.0007,
+          0.0515
+        ],
+        "ic95_brecha_alertas": [
+          0.0007,
+          0.0515
+        ],
+        "grupo_con_menor_recall": "en",
+        "veredicto": "sin hallazgo"
+      },
+      "edad": {
+        "brecha_recall": 0.0875,
+        "brecha_fpr": 0.017,
+        "brecha_alertas": 0.0096,
+        "razon_alertas_min_max": 0.9682,
+        "recall_minimo_grupo": 0.7395,
+        "ic95_recall_por_grupo": {
+          "31 a 40": [
+            0.6786,
+            0.8009
+          ],
+          "> 40": [
+            0.6928,
+            0.8732
+          ],
+          "≤ 30": [
+            0.7944,
+            0.8545
+          ]
+        },
+        "ic95_brecha_recall": [
+          0.0357,
+          0.1662
+        ],
+        "ic95_brecha_fpr": [
+          0.0048,
+          0.0877
+        ],
+        "ic95_brecha_alertas": [
+          0.0058,
+          0.0728
+        ],
+        "grupo_con_menor_recall": "31 a 40",
+        "veredicto": "sin hallazgo"
+      }
+    }
+  },
+  "posicion_sexo_en_ranking_de_coeficientes": {
+    "sex_F": 27,
+    "sex_M": 25
+  },
+  "variables_totales": 27,
+  "entorno": {
+    "fecha": "2026-11-20T10:18:52",
+    "python": "3.11.16",
+    "sistema": "Windows-10-10.0.26300-SP0",
+    "procesador": "AMD64 Family 25 Model 68 Stepping 1, AuthenticAMD",
+    "nucleos_logicos": 12
+  }
+}

@@ -1,0 +1,31 @@
+# =============================================================================
+# restricciones.yaml - Las tres restricciones que ninguna optimización puede romper (Etapa 6)
+# =============================================================================
+# Regla del docente: elegir el costo dominante y 2 o 3 palancas, con UNA restricción de calidad,
+# UNA de desempeño y UNA de costo. Ninguna palanca se acepta si sacrifica el SLA o la calidad.
+# src/evaluar_restricciones.py lee este archivo y marca cada variante como "cumple" o "no cumple".
+
+calidad:
+  descripcion: >
+    El modelo optimizado toma exactamente las mismas decisiones que el modelo v1.0.0 de la Etapa 4
+    en las 16,498 sesiones de prueba (56 atletas nunca vistos) y conserva recall >= 0.70.
+  max_diferencia_probabilidad: 0.0001   # |p_onnx - p_sklearn| máximo permitido
+  decisiones_distintas_max: 0           # con umbral 0.17
+  recall_minimo: 0.70                   # SLO de calidad de la Etapa 5 (config/monitoreo.yaml)
+
+desempeno:
+  descripcion: >
+    SLO de latencia de la Etapa 5: el 99 % de las consultas a POST /predict en menos de 300 ms,
+    medido en el servidor con la carga de producción (288 consultas por hora) y sin errores 5xx.
+    Además debe cumplirse en RÁFAGA: 4 consultas simultáneas, como cuando un coach revisa a varios
+    atletas justo antes de iniciar la clase.
+  p99_max_ms: 300
+  concurrencia_rafaga: 4
+  tasa_errores_max: 0.005               # SLO de disponibilidad 99.5 %
+
+costo:
+  descripcion: >
+    El costo mensual estimado de la propuesta en Azure (cómputo + registro de imágenes) debe ser
+    menor o igual al del despliegue actual en el escenario de piloto, y sin depender de la capa gratuita.
+  comparar_contra: actual
+  usar_capa_gratuita: false

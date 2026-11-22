@@ -1,0 +1,31 @@
+config,configuracion,escenario,capa_gratuita,vcpu,gib,min_replicas_operacion,capacidad_rps_medida_slo,cumple_slo_con_rafaga,replicas_hora_pico,fraccion_segundos_activos,vcpu_s_activos,vcpu_s_inactivos,solicitudes_mes,computo_usd,solicitudes_usd,registro_usd,total_usd
+A,Actual (Etapa 4),piloto,no,0.5,1.0,0,16.1,NO,1,0.077,868500,0,138240,26.05,0.06,5.01,31.12
+A,Actual (Etapa 4),piloto,sí,0.5,1.0,0,16.1,NO,1,0.077,868500,0,138240,20.66,0.0,5.01,25.67
+A,Actual (Etapa 4),red_x10,no,0.5,1.0,0,16.1,NO,1,0.551,868500,0,1382400,26.05,0.55,5.01,31.62
+A,Actual (Etapa 4),red_x10,sí,0.5,1.0,0,16.1,NO,1,0.551,868500,0,1382400,20.66,0.0,5.01,25.67
+A,Actual (Etapa 4),pico_competencia,no,0.5,1.0,0,16.1,NO,1,0.982,868500,0,6912000,26.05,2.76,5.01,33.83
+A,Actual (Etapa 4),pico_competencia,sí,0.5,1.0,0,16.1,NO,1,0.982,868500,0,6912000,20.66,1.96,5.01,27.63
+A2,Actual en 0.25 vCPU (sin ONNX),piloto,no,0.25,0.5,0,10.5,NO,1,0.077,434250,0,138240,13.03,0.06,5.01,18.09
+A2,Actual en 0.25 vCPU (sin ONNX),piloto,sí,0.25,0.5,0,10.5,NO,1,0.077,434250,0,138240,7.63,0.0,5.01,12.64
+A2,Actual en 0.25 vCPU (sin ONNX),red_x10,no,0.25,0.5,0,10.5,NO,1,0.551,434250,0,1382400,13.03,0.55,5.01,18.59
+A2,Actual en 0.25 vCPU (sin ONNX),red_x10,sí,0.25,0.5,0,10.5,NO,1,0.551,434250,0,1382400,7.63,0.0,5.01,12.64
+A2,Actual en 0.25 vCPU (sin ONNX),pico_competencia,no,0.25,0.5,0,10.5,NO,1,0.982,434250,0,6912000,13.03,2.76,5.01,20.8
+A2,Actual en 0.25 vCPU (sin ONNX),pico_competencia,sí,0.25,0.5,0,10.5,NO,1,0.982,434250,0,6912000,7.63,1.96,5.01,14.6
+B,+ ONNX (palanca 1 y 2),piloto,no,0.5,1.0,0,183.9,sí,1,0.077,868500,0,138240,26.05,0.06,5.01,31.12
+B,+ ONNX (palanca 1 y 2),piloto,sí,0.5,1.0,0,183.9,sí,1,0.077,868500,0,138240,20.66,0.0,5.01,25.67
+B,+ ONNX (palanca 1 y 2),red_x10,no,0.5,1.0,0,183.9,sí,1,0.551,868500,0,1382400,26.05,0.55,5.01,31.62
+B,+ ONNX (palanca 1 y 2),red_x10,sí,0.5,1.0,0,183.9,sí,1,0.551,868500,0,1382400,20.66,0.0,5.01,25.67
+B,+ ONNX (palanca 1 y 2),pico_competencia,no,0.5,1.0,0,183.9,sí,1,0.982,868500,0,6912000,26.05,2.76,5.01,33.83
+B,+ ONNX (palanca 1 y 2),pico_competencia,sí,0.5,1.0,0,183.9,sí,1,0.982,868500,0,6912000,20.66,1.96,5.01,27.63
+C,+ réplica 0.25 vCPU (palanca 3),piloto,no,0.25,0.5,0,76.9,sí,1,0.077,434250,0,138240,13.03,0.06,5.01,18.09
+C,+ réplica 0.25 vCPU (palanca 3),piloto,sí,0.25,0.5,0,76.9,sí,1,0.077,434250,0,138240,7.63,0.0,5.01,12.64
+C,+ réplica 0.25 vCPU (palanca 3),red_x10,no,0.25,0.5,0,76.9,sí,1,0.551,434250,0,1382400,13.03,0.55,5.01,18.59
+C,+ réplica 0.25 vCPU (palanca 3),red_x10,sí,0.25,0.5,0,76.9,sí,1,0.551,434250,0,1382400,7.63,0.0,5.01,12.64
+C,+ réplica 0.25 vCPU (palanca 3),pico_competencia,no,0.25,0.5,0,76.9,sí,1,0.982,434250,0,6912000,13.03,2.76,5.01,20.8
+C,+ réplica 0.25 vCPU (palanca 3),pico_competencia,sí,0.25,0.5,0,76.9,sí,1,0.982,434250,0,6912000,7.63,1.96,5.01,14.6
+D,Propuesta: C + min 1 réplica en horario (cron),piloto,no,0.25,0.5,1,76.9,sí,1,0.077,33214,398786,138240,4.59,0.06,5.01,9.65
+D,Propuesta: C + min 1 réplica en horario (cron),piloto,sí,0.25,0.5,1,76.9,sí,1,0.077,33214,398786,138240,3.59,0.0,5.01,8.6
+D,Propuesta: C + min 1 réplica en horario (cron),red_x10,no,0.25,0.5,1,76.9,sí,1,0.551,237890,194110,1382400,8.88,0.55,5.01,14.45
+D,Propuesta: C + min 1 réplica en horario (cron),red_x10,sí,0.25,0.5,1,76.9,sí,1,0.551,237890,194110,1382400,3.48,0.0,5.01,8.49
+D,Propuesta: C + min 1 réplica en horario (cron),pico_competencia,no,0.25,0.5,1,76.9,sí,1,0.982,424088,7912,6912000,12.79,2.76,5.01,20.57
+D,Propuesta: C + min 1 réplica en horario (cron),pico_competencia,sí,0.25,0.5,1,76.9,sí,1,0.982,424088,7912,6912000,7.39,1.96,5.01,14.37

@@ -1,0 +1,4 @@
+*
+!servicio_optimizado/
+!modelo/model.onnx
+!modelo/metadata.json

@@ -1,0 +1,40 @@
+{
+  "tipo": "ESTIMACIÓN con supuestos (config/precios_azure.yaml) a partir de mediciones locales; no es una factura",
+  "piloto_mensual_usd": {
+    "A": 31.12,
+    "A2": 18.09,
+    "B": 31.12,
+    "C": 18.09,
+    "D": 9.65
+  },
+  "red_x10_mensual_usd": {
+    "A": 31.62,
+    "A2": 18.59,
+    "B": 31.62,
+    "C": 18.59,
+    "D": 14.45
+  },
+  "pico_competencia_mensual_usd": {
+    "A": 33.83,
+    "A2": 20.8,
+    "B": 33.83,
+    "C": 20.8,
+    "D": 20.57
+  },
+  "piloto_anual_usd": {
+    "actual": 373.44,
+    "propuesta": 115.8
+  },
+  "fase_i_presupuesto_computo_nube_anio1_usd": 9600,
+  "fase_i_vs_propuesta": "La Fase I presupuestó USD 9,600 para cómputo en la nube con GPU; el modelo real es una regresión logística que corre en CPU y la propuesta se estima en USD 116 al año sin capa gratuita (piloto).",
+  "cumple_slo_con_rafaga": {
+    "A": "NO",
+    "A2": "NO",
+    "B": "sí",
+    "C": "sí",
+    "D": "sí"
+  },
+  "restriccion_costo_cumple": true,
+  "lectura": "Con la carga del proyecto una sola réplica basta en todos los escenarios, así que el costo lo domina el TIEMPO-RÉPLICA (tamaño x segundos encendida x tarifa), no la CPU por consulta. ONNX por sí solo (B) no baja la factura; lo que la baja es el tamaño de réplica (C) y la política de réplicas mínimas (D). ONNX es lo que permite bajar a 0.25 vCPU sin romper el SLO en ráfaga (A2 no cumple).",
+  "factor_utilizacion": 0.6
+}

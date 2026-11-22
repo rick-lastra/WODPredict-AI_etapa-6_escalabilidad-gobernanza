@@ -1,0 +1,7 @@
+# Dependencias de la API OPTIMIZADA (Python 3.12). Sin pandas, scipy ni scikit-learn:
+# la inferencia la hace ONNX Runtime con el grafo modelo/model.onnx.
+numpy==2.0.2
+onnxruntime==1.32.0
+fastapi==0.162.0
+pydantic==2.14.2
+uvicorn==0.54.0

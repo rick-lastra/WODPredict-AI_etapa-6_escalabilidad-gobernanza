@@ -1,0 +1,54 @@
+{
+  "descripcion": "Equivalencia del modelo ONNX contra el modelo scikit-learn v1.0.0 (Etapa 4)",
+  "datos": "Conjunto de prueba: 20 % de atletas (GroupShuffleSplit, semilla 42), dataset sintético wodpredict-synth@v1.0",
+  "sesiones_prueba": 16498,
+  "atletas_prueba": 56,
+  "diferencia_probabilidad": {
+    "max": 2.9010833479947706e-07,
+    "media": 2.6433823974144068e-08
+  },
+  "margen_minimo_al_umbral": 2.7072492131463566e-05,
+  "decisiones_distintas": 0,
+  "metricas_sklearn": {
+    "recall": 0.7324,
+    "precision": 0.3778,
+    "roc_auc": 0.8593,
+    "alertas": 4021
+  },
+  "metricas_onnx": {
+    "recall": 0.7324,
+    "precision": 0.3778,
+    "roc_auc": 0.8593,
+    "alertas": 4021
+  },
+  "restriccion": {
+    "descripcion": "El modelo optimizado toma exactamente las mismas decisiones que el modelo v1.0.0 de la Etapa 4 en las 16,498 sesiones de prueba (56 atletas nunca vistos) y conserva recall >= 0.70.\n",
+    "max_diferencia_probabilidad": 0.0001,
+    "decisiones_distintas_max": 0,
+    "recall_minimo": 0.7
+  },
+  "cumple_restriccion_calidad": true,
+  "artefactos": {
+    "model.pkl": {
+      "bytes": 6010,
+      "sha256": "9cc8a54400b6254dae30cf8bd328cdb272e5172f37f26699d6045683ea57f518"
+    },
+    "model.onnx": {
+      "bytes": 2895,
+      "sha256": "145c70c3cc775c7e26df5a738422641b347f1f0457592077069526056ab0c76e"
+    }
+  },
+  "versiones": {
+    "onnxruntime": "1.32.0",
+    "onnx": "1.23.2",
+    "skl2onnx": "1.20.0",
+    "scikit-learn": "1.6.1"
+  },
+  "entorno": {
+    "fecha": "2026-11-20T09:32:33",
+    "python": "3.11.16",
+    "sistema": "Windows-10-10.0.26300-SP0",
+    "procesador": "AMD64 Family 25 Model 68 Stepping 1, AuthenticAMD",
+    "nucleos_logicos": 12
+  }
+}

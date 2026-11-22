@@ -1,0 +1,72 @@
+# =============================================================================
+# autoscaling.yaml - POLÍTICA de escalado propuesta para WODPredict-AI (Etapa 6)
+# =============================================================================
+# DOCUMENTADA, NO DESPLEGADA (indicación del docente). Cada número sale de una medición en
+# resultados/bench_contenedores.json o de un supuesto de config/precios_azure.yaml.
+#
+# Plataforma: Azure Container Apps (plan Consumption), región México Central, igual que la Etapa 4.
+# Imagen: wodpredict-api:2.0-onnx (servicio_optimizado/).
+
+recurso:
+  # ESCALADO VERTICAL (tamaño de cada réplica). Medido con docker --cpus/--memory en el equipo del autor
+  # (Windows 11, Docker Desktop), capacidad que cumple el SLO p99 < 300 ms:
+  #   0.25 vCPU / 0.5 GiB ->  76.9 consultas/s (4 clientes, p99 65 ms); con 16 clientes p99 401 ms (NO cumple)
+  #   0.5  vCPU / 1 GiB   -> 183.9 consultas/s (16 clientes, p99 205 ms)
+  #   1.0  vCPU / 2 GiB   -> 263.4 consultas/s (16 clientes, p99 107 ms)
+  # La carga del piloto es 0.08 consultas/s: 0.25 vCPU deja casi 1,000 veces de margen.
+  # La imagen actual (Etapa 4) NO cumple el SLO en ráfaga ni en 0.25 vCPU (p99 546 ms con 4 clientes)
+  # ni en su perfil actual de 0.5 vCPU (p99 481 ms), por eso el right-sizing depende de la palanca ONNX.
+  cpu: 0.25
+  memoria: 0.5Gi                 # en reposo usa ≈ 53 MiB (la imagen actual ≈ 111 MiB)
+  subir_perfil_si: "p99 sostenido > 200 ms con tráfico normal (alerta LAT-P2 de la Etapa 5) y sin otra causa en las trazas"
+
+escalado_horizontal:
+  # ESCALADO HORIZONTAL (número de réplicas) con KEDA, que trae Container Apps.
+  min_replicas_noche: 0          # 21:15 a 04:45: escala a 0, no cobra nada
+  max_replicas: 5                # tope de gasto: 5 x 77 consultas/s ≈ 385 consultas/s, ≈ 4,800 veces el piloto
+  reglas:
+    - nombre: http-concurrencia
+      tipo: http
+      concurrentRequests: 4      # una réplica más cuando hay > 4 consultas en curso por réplica
+                                 # (medido: con 4 clientes p99 65 ms; con 16 clientes p99 401 ms, fuera del SLO)
+    - nombre: horario-boxes
+      tipo: cron                 # KEDA cron scaler
+      zona_horaria: America/Mexico_City
+      inicio: "45 4 * * *"       # 15 min antes de la primera clase (05:00)
+      fin: "15 21 * * *"         # 15 min después de la última clase
+      replicas_deseadas: 1       # mínimo de 1 réplica en horario: sin arranque en frío para el coach
+  justificacion_min_1_en_horario: >
+    Con una consulta cada 12.5 s la app nunca llega a escalar a 0 en horario, así que con min = 0
+    la réplica se cobra SIEMPRE a tarifa activa. Con min = 1 en horario, Azure cobra tarifa inactiva
+    (8 veces más barata en vCPU) en los segundos sin consultas, que son ≈ 92 % del tiempo en el piloto
+    (ver resultados/costos_escenarios.csv, configuración D). Además elimina el arranque en frío
+    (medido: 10.1 s en 0.25 vCPU sin contar la descarga de la imagen; 18.9 s con la imagen actual)
+    para la primera consulta del día.
+
+disponibilidad:
+  piloto: "1 réplica en horario es suficiente para el SLO de 99.5 % (Etapa 5): Container Apps reinicia una réplica caída y el runbook RB-01 cubre el reinicio."
+  produccion_con_datos_reales: >
+    Al pasar a datos reales de atletas (después del piloto con Wodify), subir min_replicas en horario
+    a 2 en zonas distintas. Duplica la parte de cómputo de la configuración D (≈ +USD 4.6 al mes en
+    el piloto) a cambio de no depender de una sola réplica. Decisión del responsable del servicio.
+
+cliente:
+  keep_alive: >
+    Los clientes (formulario /app, integraciones) deben reutilizar la conexión HTTPS (requests.Session,
+    fetch del navegador lo hace solo). La prueba L01 de la Etapa 4 abría una conexión nueva por
+    consulta: en Azure cada consulta pagaba TCP + TLS completos, causa probable de las medianas de
+    838 ms (East US 2) y 1,125 ms (México Central). HIPÓTESIS: no se pudo medir en Azure porque el
+    despliegue está apagado; localmente no hay TLS, así que la comparación local no sirve para probarla.
+
+palancas_descartadas:
+  cache: "0.00 % de consultas repetidas en las 16,498 sesiones de prueba (resultados/bench_inferencia.json)."
+  batching: "Agrupar 8 consultas ahorra 0.04 ms de CPU por consulta pero obliga a esperar ≈ 87 s a que lleguen con 288 consultas/h."
+  cuantizacion: "26 coeficientes y un ONNX de 2.9 KB: no hay nada que ganar y sí riesgo de cambiar decisiones cerca del umbral 0.17."
+  gpu: "La regresión logística corre en 0.19 ms en CPU; la GPU de la Fase I (USD 9,600) no se justifica."
+
+# Equivalente en Azure CLI (NO ejecutar sin aprobación; solo documenta la política):
+#   az containerapp update -n wodpredict-api-mx -g rg-wodpredict-mx \
+#     --image wodpredictal02568360.azurecr.io/wodpredict-api:2.0-onnx \
+#     --cpu 0.25 --memory 0.5Gi --min-replicas 0 --max-replicas 5 \
+#     --scale-rule-name http-concurrencia --scale-rule-type http --scale-rule-http-concurrency 4
+#   (la regla cron se agrega con --scale-rule-type cron y los metadatos timezone/start/end/desiredReplicas)
