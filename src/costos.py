@@ -17,7 +17,11 @@ Configuraciones comparadas (una palanca a la vez, para atribuir el ahorro):
   A2. Solo right-sizing SIN ONNX: imagen 1.0 en 0.25 vCPU (control: ¿se podía ahorrar sin optimizar?).
   B. + ONNX: imagen 2.0-onnx, mismo perfil y escalado.
   C. + ONNX + réplica de 0.25 vCPU / 0.5 GiB (right-sizing permitido por la medición).
-  D. Propuesta: C + mínimo de 1 réplica SOLO en horario de operación (regla cron) y 0 de noche.
+  D0. Versión entregada en la Actividad 9: C + regla cron de 1 réplica en horario con min = 0.
+      CORREGIDA tras la retroalimentación docente: la réplica que levanta la regla cron está POR ENCIMA
+      del mínimo configurado (0), así que Azure la cobra a tarifa activa. Cuesta lo mismo que C.
+  D. Propuesta corregida: C + minReplicas = 1 las 24 horas (sin regla cron). Es la única forma de que la
+     réplica cobre tarifa inactiva: en horario, en los segundos sin consultas; de noche, todo el tiempo.
 """
 import csv
 import json
@@ -54,9 +58,12 @@ def costo_mes(cfg, esc, precios, cap_rps, gratis):
         s_activos = replicas * (seg_operacion + ca["cooldown_s"] * dias)
         s_inactivos = 0
     else:
+        # Réplicas del mínimo configurado (minReplicas > 0): tarifa inactiva en los segundos sin consultas.
         base = cfg["min_replicas_operacion"]
         s_activos = base * seg_operacion * frac_activa + max(replicas - base, 0) * seg_operacion
         s_inactivos = base * seg_operacion * (1 - frac_activa)
+        # minReplicas aplica las 24 h: fuera de horario la réplica sigue encendida, sin consultas -> inactiva.
+        s_inactivos += base * (24 - esc["horas_operacion_por_dia"]) * 3600 * dias
     vcpu_s_act, gib_s_act = s_activos * cfg["vcpu"], s_activos * cfg["gib"]
     vcpu_s_ina, gib_s_ina = s_inactivos * cfg["vcpu"], s_inactivos * cfg["gib"]
     solicitudes = esc["solicitudes_por_hora"] * esc["horas_operacion_por_dia"] * dias
@@ -85,7 +92,9 @@ def main():
         {"id": "A2", "nombre": "Actual en 0.25 vCPU (sin ONNX)", "variante": "actual", "vcpu": 0.25, "gib": 0.5, "min_replicas_operacion": 0},
         {"id": "B", "nombre": "+ ONNX (palanca 1 y 2)", "variante": "optimizado", "vcpu": 0.5, "gib": 1.0, "min_replicas_operacion": 0},
         {"id": "C", "nombre": "+ réplica 0.25 vCPU (palanca 3)", "variante": "optimizado", "vcpu": 0.25, "gib": 0.5, "min_replicas_operacion": 0},
-        {"id": "D", "nombre": "Propuesta: C + min 1 réplica en horario (cron)", "variante": "optimizado", "vcpu": 0.25, "gib": 0.5, "min_replicas_operacion": 1},
+        # D0: la regla cron con min = 0 deja la réplica por encima del mínimo -> tarifa activa (igual que C).
+        {"id": "D0", "nombre": "Act. 9 entregada: C + cron con min 0 (se cobra como C)", "variante": "optimizado", "vcpu": 0.25, "gib": 0.5, "min_replicas_operacion": 0},
+        {"id": "D", "nombre": "Propuesta corregida: C + minReplicas 1 las 24 h", "variante": "optimizado", "vcpu": 0.25, "gib": 0.5, "min_replicas_operacion": 1},
     ]
     filas = []
     for cfg in configs:
@@ -117,9 +126,9 @@ def main():
     fase_i = precios["fase_i"]
     resumen = {
         "tipo": "ESTIMACIÓN con supuestos (config/precios_azure.yaml) a partir de mediciones locales; no es una factura",
-        "piloto_mensual_usd": {c: total(c, "piloto") for c in ("A", "A2", "B", "C", "D") if any(r["config"] == c for r in filas)},
-        "red_x10_mensual_usd": {c: total(c, "red_x10") for c in ("A", "A2", "B", "C", "D") if any(r["config"] == c for r in filas)},
-        "pico_competencia_mensual_usd": {c: total(c, "pico_competencia") for c in ("A", "A2", "B", "C", "D") if any(r["config"] == c for r in filas)},
+        "piloto_mensual_usd": {c: total(c, "piloto") for c in ("A", "A2", "B", "C", "D0", "D") if any(r["config"] == c for r in filas)},
+        "red_x10_mensual_usd": {c: total(c, "red_x10") for c in ("A", "A2", "B", "C", "D0", "D") if any(r["config"] == c for r in filas)},
+        "pico_competencia_mensual_usd": {c: total(c, "pico_competencia") for c in ("A", "A2", "B", "C", "D0", "D") if any(r["config"] == c for r in filas)},
         "piloto_anual_usd": {"actual": round(anual_actual, 2), "propuesta": round(anual_prop, 2)},
         "fase_i_presupuesto_computo_nube_anio1_usd": fase_i["computo_nube_anio1"],
         "fase_i_vs_propuesta": (f"La Fase I presupuestó USD {fase_i['computo_nube_anio1']:,} para cómputo en la nube con GPU; "
@@ -130,7 +139,8 @@ def main():
         "lectura": ("Con la carga del proyecto una sola réplica basta en todos los escenarios, así que el costo lo domina "
                     "el TIEMPO-RÉPLICA (tamaño x segundos encendida x tarifa), no la CPU por consulta. ONNX por sí solo "
                     "(B) no baja la factura; lo que la baja es el tamaño de réplica (C) y la política de réplicas "
-                    "mínimas (D). ONNX es lo que permite bajar a 0.25 vCPU sin romper el SLO en ráfaga (A2 no cumple)."),
+                    "mínimas (D): minReplicas = 1 las 24 h para que Azure aplique la tarifa inactiva. La regla cron "
+                    "con min = 0 de la versión entregada (D0) no la obtiene y cuesta lo mismo que C. ONNX es lo que permite bajar a 0.25 vCPU sin romper el SLO en ráfaga (A2 no cumple)."),
         "factor_utilizacion": FACTOR_UTILIZACION,
     }
     guardar_json("costos_resumen.json", resumen)

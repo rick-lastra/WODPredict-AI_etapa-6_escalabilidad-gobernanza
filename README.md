@@ -8,11 +8,27 @@
 **Nombre del proyecto:** WODPredict-AI (Actividad 9. Escalabilidad, optimización de costos y gobernanza responsable)
 Este repositorio toma la API desplegada en la Etapa 4, que aquí es el **sistema actual** y no se modifica, y los SLO de la Etapa 5. Con eso **mide** el sistema actual, aplica tres palancas de optimización (ONNX Runtime, imagen ligera y right-sizing con política de réplicas), **vuelve a medir** con el mismo método, estima el costo en Azure Container Apps bajo principios FinOps y realiza una **auditoría ética, técnica y legal** con evaluación de fairness y un plan de escalamiento responsable por fases.
 
+> ### 🔧 Corrección posterior a la evaluación (retroalimentación docente, Actividad 9)
+>
+> **1. Autoescalado y facturación.** La versión entregada combinaba `min_replicas: 0` con una regla cron de 1 réplica en horario y suponía que esa réplica cobraba tarifa inactiva. Azure Container Apps solo aplica la tarifa inactiva a las réplicas del **mínimo configurado** (`minReplicas > 0`); la réplica que levanta la regla cron está por encima del mínimo y se cobra a tarifa activa. Esa política (D0) cuesta lo mismo que C: USD 18.09 al mes en el piloto, −42 % y no −69 %. Se corrigió [`politicas/autoscaling.yaml`](politicas/autoscaling.yaml) a `minReplicas: 1` las 24 horas, sin regla cron, y [`src/costos.py`](src/costos.py) ahora cobra también las horas de la noche a tarifa inactiva. Resultado: **USD 11.59 al mes (−63 % contra A)**.
+>
+> | Business case (3 años, USD) | Fase I | Entregado (D0 supuesto en 9.65) | Corregido (D = 11.59) |
+> |---|---|---|---|
+> | Inversión total | 83,400 | 74,147 | 74,217 |
+> | ROI acumulado | 64.3 % | 84.8 % | 84.6 % |
+> | Payback | 1.83 años | 1.60 años | 1.60 años |
+>
+> El ahorro de la política baja, pero el ROI casi no cambia: la nube pesa menos de 0.2 % de la inversión. La conclusión de fondo se mantiene (quitar la GPU de la Fase I es lo que mueve el ROI).
+>
+> **2. Incertidumbre del fairness.** El IC 95 % de la brecha de recall por nivel después de la mitigación va de 0.0163 a 0.1582: con 56 atletas de prueba **no hay evidencia de que se viole** el límite de 0.10, pero **tampoco se puede afirmar que se cumpla**. El veredicto correcto es "no concluyente". Para afirmarlo con un IC cuyo extremo superior quede bajo 0.10 se necesitan del orden de 8 a 9 veces más atletas por nivel (≈ 130 a 190 por nivel), lo que solo se alcanza con datos reales de varias sucursales.
+>
+> **3. Capacidad de los coaches.** La mitigación sube las falsas alarmas de 15.2 % a 19.9 % de las sesiones (élite: de 12.3 % a 23.6 %). Los criterios cuantitativos de aceptación para esa carga se definen en la Fase III (documento técnico de operación del repositorio `WODPredict-AI_Etapa-7_pipeline-mlops`).
+
 **Objetivo General:**
 Que el servicio que usa el coach para decidir la carga del día pueda crecer de una sucursal a toda la red de **UnderCover Fitness** **manteniendo el SLO** (p99 < 300 ms, también en ráfaga), **al menor costo posible** y con un modelo **justo, trazable y conforme** a los marcos de Responsible AI.
 
 **Contexto Profesional:**
-Iniciativa alineada al *Business Case* de UnderCover Fitness para reducir la deserción de atletas en un 25% derivada de lesiones por acumulación de fatiga. La Fase I presupuestó USD 9,600 al año en instancias GPU; con la carga real del proyecto (288 consultas por hora) el costo lo decide el **tiempo-réplica**, no la CPU por consulta, y la propuesta se estima en unos USD 116 al año. El modelo recomienda y el coach decide.
+Iniciativa alineada al *Business Case* de UnderCover Fitness para reducir la deserción de atletas en un 25% derivada de lesiones por acumulación de fatiga. La Fase I presupuestó USD 9,600 al año en instancias GPU; con la carga real del proyecto (288 consultas por hora) el costo lo decide el **tiempo-réplica**, no la CPU por consulta, y la propuesta se estima en unos USD 139 al año. El modelo recomienda y el coach decide.
 
 **Qué domina el costo.** El modelo es una regresión logística de 6 KB y una sola réplica basta en todos los escenarios. Por eso la factura es el tamaño de la réplica, por los segundos que está encendida, por la tarifa (activa o inactiva). El registro de imágenes (ACR Basic, ≈ USD 5 al mes) es un costo fijo.
 
@@ -22,7 +38,7 @@ Iniciativa alineada al *Business Case* de UnderCover Fitness para reducir la des
 |---|---|---|---|
 | 1 | **Inferencia con ONNX Runtime** | El mismo modelo v1.0.0 se ejecuta en ONNX Runtime y ya no pasa por pandas y scikit-learn en cada consulta | La CPU por consulta baja casi 9 veces, lo que da margen para la palanca 3 |
 | 2 | **Imagen ligera** | La imagen ya no instala pandas, scipy ni scikit-learn | Arranque en frío entre 41 y 53 % más rápido, la mitad de memoria y una imagen comprimida 35 % menor |
-| 3 | **Right-sizing y política de réplicas** | Réplica de 0.25 vCPU / 0.5 GiB con mínimo de 1 réplica solo en horario de los boxes (regla cron) y 0 de noche | Es lo que realmente baja la factura (ver Validación y Resultados) |
+| 3 | **Right-sizing y política de réplicas** | Réplica de 0.25 vCPU / 0.5 GiB con `minReplicas: 1` las 24 horas, sin regla cron (corregido, ver abajo) | Es lo que realmente baja la factura (ver Validación y Resultados) |
 
 **Palancas descartadas, con evidencia:**
 *   **Caché:** 0.00 % de consultas repetidas en las 16,498 sesiones de prueba.
@@ -62,7 +78,7 @@ Diagramas elaborados en Miro (tablero completo en `evidencias/07_Miro_Arquitectu
 
 **Política de escalado (`politicas/autoscaling.yaml`, documentada, no desplegada):**
 *   **Vertical:** 0.25 vCPU / 0.5 GiB. Se sube de perfil solo si el p99 sostenido supera 200 ms sin otra causa en las trazas.
-*   **Horizontal:** regla HTTP de KEDA con `concurrentRequests: 4` (medido: con 16 clientes la réplica de 0.25 vCPU ya no cumple el SLO), `max_replicas: 5` como tope de gasto, regla cron de 1 réplica de 04:45 a 21:15 (America/Mexico_City) y 0 de noche.
+*   **Horizontal:** regla HTTP de KEDA con `concurrentRequests: 4` (medido: con 16 clientes la réplica de 0.25 vCPU ya no cumple el SLO), `max_replicas: 5` como tope de gasto, `min_replicas: 1` las 24 horas y sin regla cron (corrección posterior a la evaluación).
 *   Para producción con datos reales se proponen 2 réplicas mínimas en zonas distintas.
 *   **Cliente con keep-alive:** la prueba L01 de la Etapa 4 abría una conexión HTTPS nueva por consulta. Es la causa probable del ≈ 1.1 s medido en Azure, pero es una **hipótesis**: no se puede medir con el despliegue apagado.
 
@@ -190,7 +206,7 @@ Abre http://localhost:8001/docs y http://localhost:8001/app. Para ver el consumo
 |---|---|---|
 | **Calidad** | Mismas decisiones que el modelo v1.0.0 en las 16,498 sesiones de prueba (56 atletas nunca vistos), \|Δp\| ≤ 1e-4 y recall ≥ 0.70 | ✅ 0 decisiones distintas, \|Δp\| máx. = 2.9e-7, recall 0.7324 (igual que la Etapa 4) |
 | **Desempeño** | SLO de la Etapa 5: p99 < 300 ms y errores ≤ 0.5 %, también en ráfaga de 4 consultas simultáneas (un coach que revisa a varios atletas antes de la clase) | ✅ Propuesta (0.25 vCPU): p99 96 ms con 1 cliente y 65 ms con 4. ❌ El sistema actual en su perfil de 0.5 vCPU tiene p99 de 481 ms con 4 clientes, y en 0.25 vCPU llega a 546 ms |
-| **Costo** | Costo mensual estimado ≤ al actual en el piloto, sin contar la capa gratuita | ✅ USD 9.65 contra USD 31.12 al mes (−69 %) |
+| **Costo** | Costo mensual estimado ≤ al actual en el piloto, sin contar la capa gratuita | ✅ USD 11.59 contra USD 31.12 al mes (−63 %). La versión entregada reportaba 9.65 (−69 %); ver la corrección |
 
 **Antes vs después:**
 
@@ -223,13 +239,14 @@ Abre http://localhost:8001/docs y http://localhost:8001/app. Para ver el consumo
 | A2. Actual en 0.25 vCPU (control sin ONNX) | ❌ en ráfaga | 18.09 | 18.59 | 20.80 |
 | B. + ONNX, mismo perfil | ✅ | 31.12 | 31.62 | 33.83 |
 | C. + ONNX y 0.25 vCPU | ✅ | 18.09 | 18.59 | 20.80 |
-| **D. Propuesta: C + min 1 réplica en horario (cron), 0 de noche** | ✅ | **9.65** | **14.45** | **20.57** |
+| D0. Versión entregada: C + regla cron con min 0 (se cobra como C) | ✅ | 18.09 | 18.59 | 20.80 |
+| **D. Propuesta corregida: C + `minReplicas: 1` las 24 h, sin cron** | ✅ | **11.59** | **16.39** | **22.51** |
 
 *   ONNX por sí solo (B) **no baja la factura**, porque con una réplica el costo es tiempo-réplica y no CPU. Lo que la baja es el tamaño de la réplica (C) y la política de réplicas mínimas (D).
 *   ONNX es la condición para cumplir el SLO en ráfaga, tanto en 0.25 como en 0.5 vCPU. El control A2 cuesta lo mismo que C, pero no cumple.
-*   Con una consulta cada 12.5 s la app nunca escala a 0 en horario. Con min = 0, toda la réplica se cobra a tarifa activa. Con min = 1, el 92 % de los segundos se cobra a tarifa inactiva, que en vCPU es 8 veces más barata.
+*   Con una consulta cada 12.5 s la app nunca escala a 0 en horario. Con min = 0, toda la réplica se cobra a tarifa activa. Con `minReplicas: 1`, el 92 % de los segundos del horario y toda la noche se cobran a tarifa inactiva, que en vCPU es 8 veces más barata. En el pico de competencia, con tráfico casi continuo, D cuesta más que C (22.51 contra 20.80) porque paga la noche: si el tráfico se vuelve continuo conviene volver a min 0.
 *   **Validación con la factura real:** Azure Cost Management registró USD 0.82 por los días que la Etapa 4 estuvo encendida en noviembre de 2026 (USD 0.79 de Container Registry ≈ 0.167 al día × 4.7 días, USD 0.03 de Container Apps), cubiertos por el crédito de Azure for Students. Confirma la tarifa del registro y que, con poca carga, el registro es la línea más grande.
-*   **Fase I:** el Excel presupuestó **USD 9,600** de "instancias GPU" para el año 1. La propuesta se estima en **unos USD 116 al año** sin capa gratuita.
+*   **Fase I:** el Excel presupuestó **USD 9,600** de "instancias GPU" para el año 1. La propuesta se estima en **unos USD 139 al año** sin capa gratuita (antes de la corrección: 116).
 
 **Gobernanza responsable:**
 

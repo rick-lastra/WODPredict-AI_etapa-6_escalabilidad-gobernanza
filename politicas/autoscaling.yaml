@@ -22,32 +22,39 @@ recurso:
 
 escalado_horizontal:
   # ESCALADO HORIZONTAL (número de réplicas) con KEDA, que trae Container Apps.
-  min_replicas_noche: 0          # 21:15 a 04:45: escala a 0, no cobra nada
+  # CORRECCIÓN (retroalimentación docente, Actividad 9): la versión entregada usaba min = 0 y una regla
+  # cron de 1 réplica en horario. Azure solo cobra tarifa inactiva a las réplicas del MÍNIMO configurado
+  # (minReplicas > 0); la réplica que levanta la regla cron está por encima de ese mínimo y se cobra a
+  # tarifa activa, así que esa política costaba lo mismo que la configuración C (USD 18.09, no 9.65).
+  # Se corrige con minReplicas = 1 las 24 horas y sin regla cron.
+  min_replicas: 1                # 24 h: única forma de que la réplica cobre tarifa inactiva
   max_replicas: 5                # tope de gasto: 5 x 77 consultas/s ≈ 385 consultas/s, ≈ 4,800 veces el piloto
   reglas:
     - nombre: http-concurrencia
       tipo: http
       concurrentRequests: 4      # una réplica más cuando hay > 4 consultas en curso por réplica
                                  # (medido: con 4 clientes p99 65 ms; con 16 clientes p99 401 ms, fuera del SLO)
-    - nombre: horario-boxes
-      tipo: cron                 # KEDA cron scaler
-      zona_horaria: America/Mexico_City
-      inicio: "45 4 * * *"       # 15 min antes de la primera clase (05:00)
-      fin: "15 21 * * *"         # 15 min después de la última clase
-      replicas_deseadas: 1       # mínimo de 1 réplica en horario: sin arranque en frío para el coach
-  justificacion_min_1_en_horario: >
+                                 # las réplicas 2 a 5 están por encima del mínimo: tarifa activa mientras existan
+  justificacion_min_1_24h: >
     Con una consulta cada 12.5 s la app nunca llega a escalar a 0 en horario, así que con min = 0
-    la réplica se cobra SIEMPRE a tarifa activa. Con min = 1 en horario, Azure cobra tarifa inactiva
-    (8 veces más barata en vCPU) en los segundos sin consultas, que son ≈ 92 % del tiempo en el piloto
-    (ver resultados/costos_escenarios.csv, configuración D). Además elimina el arranque en frío
-    (medido: 10.1 s en 0.25 vCPU sin contar la descarga de la imagen; 18.9 s con la imagen actual)
-    para la primera consulta del día.
+    la réplica se cobra SIEMPRE a tarifa activa. Con minReplicas = 1, Azure cobra tarifa inactiva
+    (8 veces más barata en vCPU) en los segundos sin consultas: ≈ 92 % del horario de 16 h y las 8 h
+    de la noche completas. Piloto: USD 11.59 al mes contra 18.09 de C y 31.12 de A (−63 % contra A;
+    ver resultados/costos_escenarios.csv, configuración D). Además elimina el arranque en frío
+    (medido: 10.1 s en 0.25 vCPU sin contar la descarga de la imagen; 18.9 s con la imagen actual).
+  limite_de_la_politica: >
+    En el escenario pico_competencia (casi una consulta por segundo) la réplica casi nunca está
+    inactiva y las 8 h de la noche se pagan: D cuesta USD 22.51 contra 20.80 de C. Si el tráfico se
+    vuelve continuo, volver a min = 0 (configuración C). La decisión se revisa con la factura real.
+  politica_descartada_cron_con_min_0: >
+    Regla cron (04:45 a 21:15, America/Mexico_City, 1 réplica) con min = 0: no obtiene tarifa
+    inactiva (configuración D0 = C). Solo serviría para evitar el arranque en frío, no para ahorrar.
 
 disponibilidad:
   piloto: "1 réplica en horario es suficiente para el SLO de 99.5 % (Etapa 5): Container Apps reinicia una réplica caída y el runbook RB-01 cubre el reinicio."
   produccion_con_datos_reales: >
     Al pasar a datos reales de atletas (después del piloto con Wodify), subir min_replicas en horario
-    a 2 en zonas distintas. Duplica la parte de cómputo de la configuración D (≈ +USD 4.6 al mes en
+    a 2 en zonas distintas. Duplica la parte de cómputo de la configuración D (≈ +USD 6.5 al mes en
     el piloto) a cambio de no depender de una sola réplica. Decisión del responsable del servicio.
 
 cliente:
@@ -67,6 +74,6 @@ palancas_descartadas:
 # Equivalente en Azure CLI (NO ejecutar sin aprobación; solo documenta la política):
 #   az containerapp update -n wodpredict-api-mx -g rg-wodpredict-mx \
 #     --image wodpredictal02568360.azurecr.io/wodpredict-api:2.0-onnx \
-#     --cpu 0.25 --memory 0.5Gi --min-replicas 0 --max-replicas 5 \
+#     --cpu 0.25 --memory 0.5Gi --min-replicas 1 --max-replicas 5 \
 #     --scale-rule-name http-concurrencia --scale-rule-type http --scale-rule-http-concurrency 4
-#   (la regla cron se agrega con --scale-rule-type cron y los metadatos timezone/start/end/desiredReplicas)
+#   (sin regla cron: con min = 0 no da tarifa inactiva)

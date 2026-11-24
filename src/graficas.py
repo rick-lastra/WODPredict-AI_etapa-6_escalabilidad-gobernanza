@@ -98,7 +98,7 @@ def costos():
         ax.set_ylabel("USD al mes (sin capa gratuita)")
         ax.grid(axis="x", visible=False)
     fig.suptitle("Costo mensual ESTIMADO (Azure Container Apps + ACR Basic)\nA = actual · A2 = actual en 0.25 vCPU · "
-                 "B = +ONNX · C = +ONNX y 0.25 vCPU · D = propuesta (C + min 1 réplica en horario)", x=0.01, ha="left", fontsize=10, color=TINTA)
+                 "B = +ONNX · C = +ONNX y 0.25 vCPU · D0 = cron con min 0 (entregada, se cobra como C) · D = propuesta corregida (min 1 réplica 24 h)", x=0.01, ha="left", fontsize=10, color=TINTA)
     fig.tight_layout()
     fig.savefig(SALIDA / "costos_escenarios.png", dpi=200)
     plt.close(fig)

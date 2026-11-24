@@ -23,9 +23,15 @@ C,+ réplica 0.25 vCPU (palanca 3),red_x10,no,0.25,0.5,0,76.9,sí,1,0.551,434250
 C,+ réplica 0.25 vCPU (palanca 3),red_x10,sí,0.25,0.5,0,76.9,sí,1,0.551,434250,0,1382400,7.63,0.0,5.01,12.64
 C,+ réplica 0.25 vCPU (palanca 3),pico_competencia,no,0.25,0.5,0,76.9,sí,1,0.982,434250,0,6912000,13.03,2.76,5.01,20.8
 C,+ réplica 0.25 vCPU (palanca 3),pico_competencia,sí,0.25,0.5,0,76.9,sí,1,0.982,434250,0,6912000,7.63,1.96,5.01,14.6
-D,Propuesta: C + min 1 réplica en horario (cron),piloto,no,0.25,0.5,1,76.9,sí,1,0.077,33214,398786,138240,4.59,0.06,5.01,9.65
-D,Propuesta: C + min 1 réplica en horario (cron),piloto,sí,0.25,0.5,1,76.9,sí,1,0.077,33214,398786,138240,3.59,0.0,5.01,8.6
-D,Propuesta: C + min 1 réplica en horario (cron),red_x10,no,0.25,0.5,1,76.9,sí,1,0.551,237890,194110,1382400,8.88,0.55,5.01,14.45
-D,Propuesta: C + min 1 réplica en horario (cron),red_x10,sí,0.25,0.5,1,76.9,sí,1,0.551,237890,194110,1382400,3.48,0.0,5.01,8.49
-D,Propuesta: C + min 1 réplica en horario (cron),pico_competencia,no,0.25,0.5,1,76.9,sí,1,0.982,424088,7912,6912000,12.79,2.76,5.01,20.57
-D,Propuesta: C + min 1 réplica en horario (cron),pico_competencia,sí,0.25,0.5,1,76.9,sí,1,0.982,424088,7912,6912000,7.39,1.96,5.01,14.37
+D0,Act. 9 entregada: C + cron con min 0 (se cobra como C),piloto,no,0.25,0.5,0,76.9,sí,1,0.077,434250,0,138240,13.03,0.06,5.01,18.09
+D0,Act. 9 entregada: C + cron con min 0 (se cobra como C),piloto,sí,0.25,0.5,0,76.9,sí,1,0.077,434250,0,138240,7.63,0.0,5.01,12.64
+D0,Act. 9 entregada: C + cron con min 0 (se cobra como C),red_x10,no,0.25,0.5,0,76.9,sí,1,0.551,434250,0,1382400,13.03,0.55,5.01,18.59
+D0,Act. 9 entregada: C + cron con min 0 (se cobra como C),red_x10,sí,0.25,0.5,0,76.9,sí,1,0.551,434250,0,1382400,7.63,0.0,5.01,12.64
+D0,Act. 9 entregada: C + cron con min 0 (se cobra como C),pico_competencia,no,0.25,0.5,0,76.9,sí,1,0.982,434250,0,6912000,13.03,2.76,5.01,20.8
+D0,Act. 9 entregada: C + cron con min 0 (se cobra como C),pico_competencia,sí,0.25,0.5,0,76.9,sí,1,0.982,434250,0,6912000,7.63,1.96,5.01,14.6
+D,Propuesta corregida: C + minReplicas 1 las 24 h,piloto,no,0.25,0.5,1,76.9,sí,1,0.077,33214,614786,138240,6.53,0.06,5.01,11.59
+D,Propuesta corregida: C + minReplicas 1 las 24 h,piloto,sí,0.25,0.5,1,76.9,sí,1,0.077,33214,614786,138240,5.53,0.0,5.01,10.54
+D,Propuesta corregida: C + minReplicas 1 las 24 h,red_x10,no,0.25,0.5,1,76.9,sí,1,0.551,237890,410110,1382400,10.83,0.55,5.01,16.39
+D,Propuesta corregida: C + minReplicas 1 las 24 h,red_x10,sí,0.25,0.5,1,76.9,sí,1,0.551,237890,410110,1382400,5.43,0.0,5.01,10.44
+D,Propuesta corregida: C + minReplicas 1 las 24 h,pico_competencia,no,0.25,0.5,1,76.9,sí,1,0.982,424088,223912,6912000,14.74,2.76,5.01,22.51
+D,Propuesta corregida: C + minReplicas 1 las 24 h,pico_competencia,sí,0.25,0.5,1,76.9,sí,1,0.982,424088,223912,6912000,9.34,1.96,5.01,16.31
